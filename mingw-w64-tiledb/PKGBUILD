@@ -1,9 +1,14 @@
-# Maintainer: Kouhei Sutou <kou@clear-code.com>
+# Maintainer: Isaiah Norton <isaiah@tiledb.com>
+# Maintainer: Seth Shelnutt <seth@tiledb.com>
+# Maintainer: Dirk Eddelbuettel <dirk@tiledb.com>
+echo "nop"
 
 _realname=tiledb
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2.0.8
+# Comment this out and use pkgver() commented function below for release candidates
+pkgver=2.1.0
+pkgsuffix="-rc5" # use for "-rc1" to avoid build error
 pkgrel=2
 pkgdesc="Storage management library for sparse and dense array data (mingw-w64)"
 arch=("any")
@@ -16,22 +21,20 @@ depends=("${MINGW_PACKAGE_PREFIX}-aws-sdk-cpp"
          "${MINGW_PACKAGE_PREFIX}-zstd")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-gcc"
-             "${MINGW_PACKAGE_PREFIX}-curl")
+             "${MINGW_PACKAGE_PREFIX}-curl"
+             "${MINGW_PACKAGE_PREFIX}-binutils")
 options=("staticlibs" "strip")
 
-source=(${_realname}-${pkgver}.tar.gz::"https://github.com/TileDB-Inc/TileDB/archive/${pkgver}.tar.gz"
-        "winfixes.patch"
-        "https://patch-diff.githubusercontent.com/raw/TileDB-Inc/TileDB/pull/1778.patch")
-sha256sums=("827a38b5c676a6cf6db716885f9c9b026e5f02109ce0e30f7145182da1e9fa23"
-            "SKIP"
-            "SKIP")
-noextract=(${_realname}-${pkgver}.tar.gz)
+#source=(${_realname}-${pkgver}${pkgsuffix}.tar.gz::"https://github.com/TileDB-Inc/TileDB/archive/${pkgver}${pkgsuffix}.tar.gz")
+#sha256sums=("7921661696f3de36c0a7a093d8c637f3223fe0e6071b327e7f899fb9b3e58e5d")
+
+# switch to git due to bug (?) in build system default tar: fails to un-tar the archive
+source=('{_realnam}-{pkgver}::git+https://github.com/TileDB-Inc/TileDB#2.1.0')
+noextract=(${_realname}-${pkgver}${pkgsuffix}.tar.gz)
 
 prepare() {
-  MSYS="winsymlinks:lnk" tar -xf ${srcdir}/${_realname}-${pkgver}.tar.gz
-  cd "${srcdir}/${_realname}-${pkgver}"
-  patch -p1 -i ${srcdir}/winfixes.patch
-  patch -p1 -i ${srcdir}/1778.patch
+  echo "SOURCE DIR is: ${srcdir}"
+  #MSYS="winsymlinks:lnk" tar -xf ${srcdir}/${_realname}-${pkgver}${pkgsuffix}.tar.gz
 }
 
 build() {
@@ -43,6 +46,15 @@ build() {
   export CXXFLAGS="-mfpmath=sse -msse2"
   fi
 
+  # work around for: https://github.com/msys2/MINGW-packages/issues/6986
+  # see also: https://github.com/msys2/MINGW-packages/issues/7023
+  #export LDFLAGS="-Wl,--default-image-base-low"
+
+  # try to work around https://github.com/msys2/MINGW-packages/issues/6986
+  # - dep on binutils above
+  # - set the mingw prefix first here to prefer ld
+  export PATH=${MINGW_PREFIX}/bin:$PATH
+
   export MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX="
   ${MINGW_PREFIX}/bin/cmake.exe \
     -G"MSYS Makefiles" \
@@ -52,7 +64,8 @@ build() {
     -DTILEDB_STATIC=ON \
     -DTILEDB_TBB=OFF \
     -DTILEDB_S3=ON \
-  ../${_realname}-${pkgver}
+    ${srcdir}
+  #  ../${_realname}-${pkgver}${pkgsuffix}
   make
   make -C tiledb
 }
