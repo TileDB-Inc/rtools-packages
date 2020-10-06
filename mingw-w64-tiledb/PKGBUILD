@@ -1,8 +1,14 @@
-# Maintainer: Kouhei Sutou <kou@clear-code.com>
+# Maintainer: Isaiah Norton <isaiah@tiledb.com>
+
+#set -x
 
 _realname=tiledb
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+# update both pkgver and srcver
+# - pkgver should be final canonical version
+# - for RC testing, use e.g "srcver=2.1.0-rc1" and "pkgver=2.1.0" to
+#   avoid name verification errors due to the dash.
 pkgver=2.1.0
 srcver=2.1.0
 pkgrel=2
@@ -20,12 +26,17 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-curl")
 options=("staticlibs" "strip")
 
-source=(${_realname}-${srcver}.tar.gz::"https://github.com/TileDB-Inc/TileDB/archive/${srcver}.tar.gz")
+#source=(${_realname}-${srcver}.tar.gz::"https://github.com/TileDB-Inc/TileDB/archive/${srcver}.tar.gz")
+#sha256sums=("SKIP")
+noextract=(${_realname}-${srcver}.tar.gz)
+
+# switch to git due to bug (?) in build system default tar: fails to un-tar the archive
+source=(${_realname}-${pkgver}::"git+https://github.com/TileDB-Inc/TileDB#tag=${srcver}")
 sha256sums=("SKIP")
-noextract=(${_realname}-${srcver}${verfix}.tar.gz)
+
 
 prepare() {
-  MSYS="winsymlinks:lnk" tar -xf ${srcdir}/${_realname}-${srcver}.tar.gz
+  echo "SOURCE DIR is: ${srcdir}"
   cd "${srcdir}/${_realname}-${srcver}"
 }
 
@@ -47,7 +58,7 @@ build() {
     -DTILEDB_STATIC=ON \
     -DTILEDB_TBB=OFF \
     -DTILEDB_S3=ON \
-  ../${_realname}-${srcver}
+    ../${_realname}-${srcver}
   make
   make -C tiledb
 }
