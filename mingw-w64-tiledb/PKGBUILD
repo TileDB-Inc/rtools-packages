@@ -4,6 +4,9 @@
 set -x
 echo "nop"
 
+which tar
+tar --version
+
 _realname=tiledb
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
@@ -33,6 +36,8 @@ sha256sums=("827a38b5c676a6cf6db716885f9c9b026e5f02109ce0e30f7145182da1e9fa23"
 noextract=(${_realname}-${pkgver}.tar.gz)
 
 prepare() {
+  which tar
+  tar --version
   MSYS="winsymlinks:lnk" tar -xf ${srcdir}/${_realname}-${pkgver}.tar.gz
   cd "${srcdir}/${_realname}-${pkgver}"
   patch -p1 -i ${srcdir}/winfixes.patch
