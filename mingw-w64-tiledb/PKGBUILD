@@ -24,7 +24,7 @@ depends=("${MINGW_PACKAGE_PREFIX}-aws-sdk-cpp"
 makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-gcc"
              "${MINGW_PACKAGE_PREFIX}-curl")
-options=("staticlibs" "strip")
+options=("staticlibs")
 
 #source=(${_realname}-${srcver}.tar.gz::"https://github.com/TileDB-Inc/TileDB/archive/${srcver}.tar.gz")
 #sha256sums=("SKIP")
