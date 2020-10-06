@@ -1,5 +1,5 @@
 # Maintainer: Kouhei Sutou <kou@clear-code.com>
-
+echo "nop"
 _realname=tiledb
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
